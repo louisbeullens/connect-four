@@ -33,6 +33,7 @@ export interface IRoom<P extends {} = {}> {
 export interface IJoinOptions {
   roomId?: string
   filter?: 'waiting' | 'full' | 'all'
+  waitTimeout?: number
 }
 export interface IServer {
   hostGame(roomId: string): IRoom

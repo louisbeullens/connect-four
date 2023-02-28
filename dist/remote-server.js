@@ -55,7 +55,7 @@ exports.RemoteServer = {
                             const message = (0, websocket_common_1.parseMessage)(raw.utf8Data);
                             switch (message.type) {
                                 case 'joinGame': {
-                                    const { roomId } = message.payload;
+                                    const { roomId, waitTimeout } = message.payload;
                                     let { playerUid } = message.payload;
                                     const handler = function (playerRole, state, executeTurn) {
                                         return __awaiter(this, void 0, void 0, function* () {
@@ -82,7 +82,7 @@ exports.RemoteServer = {
                                                 .forEach((el) => (0, websocket_common_1.sendMessage)(el, 'serverBroadcast', message));
                                         };
                                     }
-                                    const player = yield (0, common_1.joinGame)(local_server_1.LocalServer, handler, { roomId });
+                                    const player = yield (0, common_1.joinGame)(local_server_1.LocalServer, handler, { roomId, waitTimeout });
                                     player.uid = message.payload.playerUid;
                                     player.connection = connection;
                                     connection.once('close', () => __awaiter(this, void 0, void 0, function* () {

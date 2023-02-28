@@ -56,7 +56,7 @@ export const RemoteServer: IWebsocketServer = {
               const message = parseMessage(raw.utf8Data)
               switch (message.type) {
                 case 'joinGame': {
-                  const { roomId } = message.payload
+                  const { roomId, waitTimeout } = message.payload
                   let { playerUid } = message.payload
                   const handler: THandler = async function (this: IPlayer<IPlayerExtension>, playerRole, state, executeTurn) {
                     this.role = playerRole
@@ -84,7 +84,7 @@ export const RemoteServer: IWebsocketServer = {
                         .forEach((el) => sendMessage(el, 'serverBroadcast', message))
                     }
                   }
-                  const player = await joinGame<IPlayerExtension>(LocalServer, handler, { roomId })!
+                  const player = await joinGame<IPlayerExtension>(LocalServer, handler, { roomId, waitTimeout })!
                   player.uid = message.payload.playerUid
                   player.connection = connection
                   connection.once('close', async () => {

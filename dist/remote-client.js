@@ -84,7 +84,7 @@ exports.RemoteClient = {
     joinGame(handler, options = {}) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            let { roomId, filter } = options;
+            let { roomId, filter, waitTimeout } = options;
             roomId = (_a = roomId !== null && roomId !== void 0 ? roomId : (yield this.getRoomIds(filter))[0]) !== null && _a !== void 0 ? _a : (0, uuid_1.v4)();
             const room = (rooms[roomId] = (_b = rooms[roomId]) !== null && _b !== void 0 ? _b : (0, common_1.hostGame)(local_server_1.LocalServer, roomId));
             const wrappedHandler = function (...[playerRole, ...rest]) {
@@ -94,7 +94,7 @@ exports.RemoteClient = {
             const uid = (0, uuid_1.v4)();
             const player = { role: common_1.EPlayerRole.NONE, uid, handler: wrappedHandler, originalHandler: handler };
             room.players.push(player);
-            (0, websocket_common_1.sendMessage)(connection, 'joinGame', { roomId, playerUid: uid });
+            (0, websocket_common_1.sendMessage)(connection, 'joinGame', { roomId, playerUid: uid, waitTimeout });
             return player;
         });
     },

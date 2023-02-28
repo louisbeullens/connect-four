@@ -13,6 +13,7 @@ type IMessage = {
     payload: {
         roomId: string;
         playerUid: string;
+        waitTimeout?: number;
     };
 } | {
     type: 'leaveGame';

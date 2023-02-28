@@ -13,7 +13,7 @@ exports.LocalServer = void 0;
 const debug_1 = require("debug");
 const uuid_1 = require("uuid");
 const common_1 = require("./common");
-const computer_player_1 = require("./computer-player");
+const minimax_player_1 = require("./minimax-player");
 const boardLogger = (0, debug_1.default)('board');
 const serverLogger = (0, debug_1.default)(common_1.LOG_SCOPE_LOCAL_SERVER);
 const rooms = {};
@@ -42,7 +42,7 @@ exports.LocalServer = {
     joinGame(handler, options = {}) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            let { roomId, filter } = options;
+            let { roomId, filter, waitTimeout } = options;
             roomId = (_a = roomId !== null && roomId !== void 0 ? roomId : (yield this.getRoomIds(filter))[0]) !== null && _a !== void 0 ? _a : (0, uuid_1.v4)();
             const room = (rooms[roomId] = (_b = rooms[roomId]) !== null && _b !== void 0 ? _b : this.hostGame(roomId));
             const playerRole = room.players.find((el) => el.role === common_1.EPlayerRole.RED)
@@ -112,12 +112,14 @@ exports.LocalServer = {
                 setTimeout(() => {
                     if (firstResponse) {
                         room.broadcast(`${(0, common_1.getPlayerName)(player.role)} joined room ${roomId}.`);
-                        setTimeout(() => __awaiter(this, void 0, void 0, function* () {
-                            if ((0, common_1.getRedAndOrYellowPlayer)(room.players).length === 1) {
-                                const bot = yield this.joinGame((0, common_1.intercept)(this, computer_player_1.computerPlayer, { silent: true }), { roomId });
-                                bot.isBot = true;
-                            }
-                        }), 10000);
+                        if (waitTimeout > 0) {
+                            setTimeout(() => __awaiter(this, void 0, void 0, function* () {
+                                if ((0, common_1.getRedAndOrYellowPlayer)(room.players).length === 1) {
+                                    const bot = yield this.joinGame((0, common_1.intercept)(this, minimax_player_1.computerPlayer, { silent: true }), { roomId });
+                                    bot.isBot = true;
+                                }
+                            }), waitTimeout);
+                        }
                     }
                     player.handler(player.role, state, executeTurn, roomId);
                 }, 500);

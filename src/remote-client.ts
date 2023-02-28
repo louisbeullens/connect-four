@@ -88,7 +88,7 @@ export const RemoteClient: IWebsocketClient = {
     return rooms[roomId]
   },
   async joinGame(this: IServer, handler: THandler, options: IJoinOptions = {}) {
-    let { roomId, filter } = options
+    let { roomId, filter, waitTimeout } = options
     roomId = roomId ?? (await this.getRoomIds(filter))[0] ?? uuid()
     const room = (rooms[roomId] = rooms[roomId] ?? hostGame<IRemoteClientPlayerExtension>(LocalServer, roomId))
     const wrappedHandler = function (this: IPlayer<IPlayerExtension>, ...[playerRole, ...rest]: Parameters<THandler>) {
@@ -98,7 +98,7 @@ export const RemoteClient: IWebsocketClient = {
     const uid = uuid()
     const player = { role: EPlayerRole.NONE, uid, handler: wrappedHandler, originalHandler: handler }
     room.players.push(player)
-    sendMessage(connection, 'joinGame', { roomId, playerUid: uid })
+    sendMessage(connection, 'joinGame', { roomId, playerUid: uid, waitTimeout })
     return player
   },
   async leaveGame(handler: THandler, roomId: string) {

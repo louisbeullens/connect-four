@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": true,
     "module": "CommonJS",
@@ -12,6 +11,10 @@
     "sourceMap": true,
     "rootDir": "src/",
     "outDir": "dist/",
+    "allowJs": true,
+    "checkJs": false
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ]
 }

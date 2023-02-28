@@ -13,7 +13,7 @@ type TGameState = Omit<IGameState, 'board'> & { board: string }
 type IMessage =
   | {
       type: 'joinGame'
-      payload: { roomId: string; playerUid: string }
+      payload: { roomId: string; playerUid: string; waitTimeout?: number }
     }
   | {
       type: 'leaveGame'

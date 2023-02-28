@@ -24,6 +24,7 @@ export interface ICommandLineOptions {
   port?: number
   host?: string
   roomId?: string
+  waitTimeout?: number
   singleGame?: boolean
   computer?: boolean
   human?: boolean
@@ -31,13 +32,17 @@ export interface ICommandLineOptions {
   logScopes: string[]
 }
 
-export const portOption = new Option('-p, --port [port]', 'Specify custom port.').argParser((value) => Number(value)).default(3000)
+const myParseInt = (value: string) => Number(value)
+
+export const portOption = new Option('-p, --port [port]', 'Specify custom port.').argParser(myParseInt).default(3000)
 export const hostOption = new Option('-h, --host [host]', 'Specify custom host.').default('localhost')
-export const roomIdOption = new Option('-R, --room-id [roomId]', 'Specify unique name for your game.').argParser((value) => (value ? value : undefined))
+export const roomIdOption = new Option('-r, --room-id [roomId]', 'Specify unique name for your game.').argParser((value) => (value ? value : undefined))
+export const waitTimeoutOption = new Option('-w, --wait-timeout [waitTimeout]', 'Time oponent gets to join, in ms.').argParser(myParseInt)
+export const singleGameOption = new Option('-s, --single-game', 'Play a single game.').default(false)
+
 export const computerOption = new Option('-C, --computer', 'Let computer play.').default(true)
 export const humanOption = new Option('-H, --human', 'Play as human.').default(false)
 export const observerOption = new Option('-O, --observer', 'Observe others play.').default(false)
-export const singleGameOption = new Option('-s, --single-game', 'Play a single game.').default(false)
 
 const allowedLogScopes = ['board', 'client:*', 'client:remote', 'network:*', 'network:websocket', LOG_SCOPE_LOCAL_SERVER] as const
 type TLogScope = (typeof allowedLogScopes)[number]

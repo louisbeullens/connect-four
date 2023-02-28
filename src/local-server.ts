@@ -23,7 +23,7 @@ import {
   TColumn,
   THandler,
 } from './common'
-import { computerPlayer } from './computer-player'
+import { computerPlayer } from './minimax-player'
 import { IPlayerExtension } from './websocket-common'
 
 const boardLogger = debug('board')
@@ -56,7 +56,7 @@ export const LocalServer: IServer = {
     return room
   },
   async joinGame(this: IServer, handler: THandler, options: IJoinOptions = {}) {
-    let { roomId, filter } = options
+    let { roomId, filter, waitTimeout } = options
     roomId = roomId ?? (await this.getRoomIds(filter))[0] ?? uuid()
     const room = (rooms[roomId] = rooms[roomId] ?? this.hostGame(roomId))
 
@@ -127,12 +127,14 @@ export const LocalServer: IServer = {
       setTimeout(() => {
         if (firstResponse) {
           room.broadcast(`${getPlayerName(player.role)} joined room ${roomId}.`)
-          setTimeout(async () => {
-            if (getRedAndOrYellowPlayer(room.players).length === 1) {
-              const bot = await this.joinGame(intercept(this, computerPlayer, { silent: true }), { roomId })
-              bot.isBot = true
-            }
-          }, 10000)
+          if (waitTimeout > 0) {
+            setTimeout(async () => {
+              if (getRedAndOrYellowPlayer(room.players).length === 1) {
+                const bot = await this.joinGame(intercept(this, computerPlayer, { silent: true }), { roomId })
+                bot.isBot = true
+              }
+            }, waitTimeout)
+          }
         }
         player.handler(player.role, state, executeTurn, roomId)
       }, 500)

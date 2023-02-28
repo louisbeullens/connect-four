@@ -1,17 +1,19 @@
 {
   "version": "1.0.0",
   "description": "connect4 Library",
-  "name": "connect4",
-  "main": "dist/index.js",
-  "module": "dist/client.js",
+  "name": "connect-four",
+  "main": "dist/client.js",
+  "types": "dist/client.d.ts",
   "bin": {
-    "connect4-server": "bin/connect4-server.sh"
+    "connect4-server": "dist/bin/connect4-server.js"
   },
   "files": [
     "dist/**/*",
     "bin/**/*"
   ],
   "scripts": {
+    "server": "node ./dist/bin/connect4-server.js",
+    "start": "node ./dist/index.js",
     "lint": "eslint --fix src/",
     "build": "tsc",
     "git": "git add dist/"
