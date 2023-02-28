@@ -1,0 +1,40 @@
+{
+  "version": "1.0.0",
+  "description": "connect4 Library",
+  "name": "connect4",
+  "main": "dist/index.js",
+  "module": "dist/client.js",
+  "bin": {
+    "connect4-server": "bin/connect4-server.sh"
+  },
+  "files": [
+    "dist/**/*",
+    "bin/**/*"
+  ],
+  "scripts": {
+    "lint": "eslint --fix src/",
+    "build": "tsc",
+    "git": "git add dist/"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^10.0.0",
+    "debug": "^4.3.4",
+    "uuid": "^9.0.0",
+    "websocket": "^1.0.34"
+  },
+  "devDependencies": {
+    "@types/debug": "^4.1.7",
+    "@types/node": "^18.14.1",
+    "@types/uuid": "^9.0.1",
+    "@types/websocket": "^1.0.5",
+    "@typescript-eslint/parser": "^5.53.0",
+    "eslint": "^8.34.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
+    "husky": "^8.0.3",
+    "madge": "^6.0.0",
+    "prettier": "^2.8.4",
+    "typescript": "^4.9.5"
+  }
+}

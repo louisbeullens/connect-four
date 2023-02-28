@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "noImplicitAny": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "target": "ES6",
+    "declaration": true,
+    "declarationMap": true,
+    "declarationDir": "dist/",
+    "sourceMap": true,
+    "rootDir": "src/",
+    "outDir": "dist/",
+  },
+  "include": ["src/**/*"]
+}

@@ -1,0 +1,52 @@
+{
+  "extends": [
+    "eslint:recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": [
+    "simple-import-sort",
+    "prettier"
+  ],
+  "rules": {
+    "no-undef": "off",
+    "no-unused-vars": "off",
+    "simple-import-sort/imports": "error",
+    "simple-import-sort/exports": "error",
+    "prettier/prettier": "error"
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.ts"
+      ],
+      "rules": {
+        "simple-import-sort/imports": [
+          "error",
+          {
+            "groups": [
+              [
+                // packages starting with a character
+                "^[a-z]",
+                // Packages starting with `@`
+                "^@",
+                // Packages starting with `~`
+                "^~",
+                // Imports starting with `../`
+                "^\\.\\.(?!/?$)",
+                "^\\.\\./?$",
+                // Imports starting with `./`
+                "^\\./(?=.*/)(?!/?$)",
+                "^\\.(?!/?$)",
+                "^\\./?$",
+                // Style imports
+                "^.+\\.s?css$",
+                // Side effect imports
+                "^\\u0000"
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+yarn-error.log
+logs/
+node_modules/
+src/private/
+dist/private/
