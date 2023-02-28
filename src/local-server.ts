@@ -1,5 +1,6 @@
 import debug from 'debug'
 import { v4 as uuid } from 'uuid'
+import { computerPlayer } from './bot-player'
 import {
   checkBoardForTie,
   checkBoardForWinner,
@@ -23,7 +24,6 @@ import {
   TColumn,
   THandler,
 } from './common'
-import { computerPlayer } from './minimax-player'
 import { IPlayerExtension } from './websocket-common'
 
 const boardLogger = debug('board')

@@ -12,8 +12,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.LocalServer = void 0;
 const debug_1 = require("debug");
 const uuid_1 = require("uuid");
+const bot_player_1 = require("./bot-player");
 const common_1 = require("./common");
-const minimax_player_1 = require("./minimax-player");
 const boardLogger = (0, debug_1.default)('board');
 const serverLogger = (0, debug_1.default)(common_1.LOG_SCOPE_LOCAL_SERVER);
 const rooms = {};
@@ -115,7 +115,7 @@ exports.LocalServer = {
                         if (waitTimeout > 0) {
                             setTimeout(() => __awaiter(this, void 0, void 0, function* () {
                                 if ((0, common_1.getRedAndOrYellowPlayer)(room.players).length === 1) {
-                                    const bot = yield this.joinGame((0, common_1.intercept)(this, minimax_player_1.computerPlayer, { silent: true }), { roomId });
+                                    const bot = yield this.joinGame((0, common_1.intercept)(this, bot_player_1.computerPlayer, { silent: true }), { roomId });
                                     bot.isBot = true;
                                 }
                             }), waitTimeout);

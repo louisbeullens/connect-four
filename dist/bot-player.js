@@ -17,4 +17,4 @@
         n.push([u, l, s]);
     } const s = n.sort((([e], [o]) => e - o)); let c = s.findIndex((e => e[0] !== s[0][0])); -1 === c && (c = s.length); let l = s.slice(0, c); l.length || (l = s); const a = l.sort((([, e], [, o]) => o - e)).map((([, , e]) => e)); return a[Math.floor(Math.random() * a.length)]; })(r, e) : 3; n(s); }; })(), exports.__esModule = t.__esModule, exports.computerPlayer = t.computerPlayer, Object.defineProperty(exports, "__esModule", { value: !0 });
 })();
-//# sourceMappingURL=minimax-player.js.map
+//# sourceMappingURL=bot-player.js.map
