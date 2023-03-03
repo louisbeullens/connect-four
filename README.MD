@@ -71,6 +71,6 @@ joinGame(LocalServer, customComputerPlayer)
 
 # see [src/index.ts](./src/index.ts) for more advanced setup
 
-# More info [Documentation](./docs/index.html)
+# More info [Documentation](https://louisbeullens.github.io/connect-four/)
 
 

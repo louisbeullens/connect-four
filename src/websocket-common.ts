@@ -44,7 +44,7 @@ const socketLogger = debug('network:websocket')
 
 export const parseMessage = (raw: string) => {
   const message = JSON.parse(raw) as IMessage
-  socketLogger('receive', message)
+  socketLogger('receive', raw)
   return message
 }
 

@@ -6,7 +6,7 @@ const WEBSOCKET = require("websocket");
 const socketLogger = (0, debug_1.default)('network:websocket');
 const parseMessage = (raw) => {
     const message = JSON.parse(raw);
-    socketLogger('receive', message);
+    socketLogger('receive', raw);
     return message;
 };
 exports.parseMessage = parseMessage;
