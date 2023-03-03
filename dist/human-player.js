@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.humanPlayer = void 0;
-const common_1 = require("./common");
+const client_1 = require("./client");
 const KEY_ENTER = new Uint8Array([13]);
 const KEY_ARROW_LEFT = new Uint8Array([27, 91, 68]);
 const KEY_ARROW_RIGHT = new Uint8Array([27, 91, 67]);
@@ -63,23 +63,24 @@ const selectNumber = (numbers, onChange) => {
     });
 };
 const humanPlayer = (...[playerRole, { board, hasEnded }, executeTurn]) => __awaiter(void 0, void 0, void 0, function* () {
-    const allowedColumns = [0, 1, 2, 3, 4, 5, 6].filter((column) => (0, common_1.getFreeBoardRowForColumn)(board, column) !== -1);
-    if (playerRole > common_1.EPlayerRole.YELLOW || !allowedColumns.length || hasEnded) {
+    const allowedColumns = [0, 1, 2, 3, 4, 5, 6].filter((column) => (0, client_1.getFreeBoardRowForColumn)(board, column) !== -1);
+    if (playerRole > client_1.EPlayerRole.YELLOW || !allowedColumns.length || hasEnded) {
         console.clear();
-        (0, common_1.printBoard)(board);
+        (0, client_1.printBoard)(board);
         return;
     }
     const column = yield selectNumber(allowedColumns, (i) => {
         console.clear();
-        console.log(`${' '.repeat(1 + 2 * i)}${(0, common_1.printCoin)(playerRole)}`);
-        (0, common_1.printBoard)(board);
+        console.log(`${' '.repeat(1 + 2 * i)}${(0, client_1.printCoin)(playerRole)}`);
+        (0, client_1.printBoard)(board);
     });
     if (column === -1) {
         return;
     }
-    (0, common_1.insertCoinInColumn)(board, column, playerRole);
+    (0, client_1.insertCoinInColumn)(board, column, playerRole);
     console.clear();
-    (0, common_1.printBoard)(board);
+    console.log('');
+    (0, client_1.printBoard)(board);
     executeTurn(column);
 });
 exports.humanPlayer = humanPlayer;

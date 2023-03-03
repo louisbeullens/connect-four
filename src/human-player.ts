@@ -1,4 +1,4 @@
-import { EPlayerRole, getFreeBoardRowForColumn, insertCoinInColumn, printBoard, printCoin, TColumn, THandler, TRow } from './common'
+import { EPlayerRole, getFreeBoardRowForColumn, insertCoinInColumn, printBoard, printCoin, TColumn, THandler, TRow } from './client'
 
 const KEY_ENTER = new Uint8Array([13])
 const KEY_ARROW_LEFT = new Uint8Array([27, 91, 68])
@@ -67,6 +67,7 @@ export const humanPlayer: THandler = async (...[playerRole, { board, hasEnded },
   }
   insertCoinInColumn(board, column, playerRole)
   console.clear()
+  console.log('')
   printBoard(board)
   executeTurn(column)
 }

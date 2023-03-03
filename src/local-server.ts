@@ -82,8 +82,8 @@ export const LocalServer: IServer = {
         }
         const freeRowOrNegativeOne = getFreeBoardRowForColumn(room.state.board, column)
         if (freeRowOrNegativeOne === -1) {
-          room.broadcast(`${getPlayerName(player.role)} plays an unavailable column!`, player)
           respond(player, { ...clone(room.state), status: 'invalidColumn' })
+          room.broadcast(`${getPlayerName(player.role)} plays an unavailable column!`, player)
           return
         }
         if (!room.state.turn) {
@@ -96,8 +96,8 @@ export const LocalServer: IServer = {
         printBoard(room.state.board, boardLogger)
         const win = checkBoardForWinner(room.state.board, player.role as unknown as ECoin)
         if (win) {
-          room.broadcast(`${getPlayerName(player.role)} wins!`)
           room.players.forEach((el) => respond(el, { ...clone(room.state), hasEnded: true, status: getEndGameWinLooseStatusFromRoles(el.role, player.role) }))
+          setTimeout(() => room.broadcast(`${getPlayerName(player.role)} won!`), 10)
           room.state = createNewGameState()
           setTimeout(() => {
             if (!(roomId in rooms)) {
@@ -110,8 +110,8 @@ export const LocalServer: IServer = {
         }
         const tie = checkBoardForTie(room.state.board)
         if (tie) {
-          room.broadcast(`Nobody won!`)
           room.players.forEach((el) => respond(el, { ...clone(room.state), hasEnded: true, status: getEndGameTieStatusFromRoles(el.role) }))
+          setTimeout(() => room.broadcast(`Nobody won!`), 10)
           room.state = createNewGameState()
           setTimeout(() => {
             if (!(roomId in rooms)) {
@@ -137,7 +137,7 @@ export const LocalServer: IServer = {
           }
         }
         player.handler(player.role, state, executeTurn, roomId)
-      }, 500)
+      }, 1)
     }
     respond(player, clone(room.state), true)
     return player
@@ -152,15 +152,16 @@ export const LocalServer: IServer = {
       return
     }
     const player = room.players[playerIndex]
-    room.broadcast(`${getPlayerName(player.role)} left room ${roomId}.`, player)
     room.players.splice(playerIndex, 1)
+    const playersLength = room.players.length
+    room.broadcast(`${getPlayerName(player.role)} left room ${roomId}.`, player)
     if (isPlayerRedOrYellow(player) && !player.isBot) {
       const bot = room.players.find((el) => el.isBot)
       if (bot) {
         this.leaveGame(bot.handler, roomId)
       }
     }
-    if (room.players.length) {
+    if (playersLength) {
       return
     }
     delete rooms[roomId]

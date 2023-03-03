@@ -12,11 +12,13 @@
     "bin/**/*"
   ],
   "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
     "server": "node ./dist/bin/connect4-server.js",
     "start": "node ./dist/index.js",
     "lint": "eslint --fix src/",
-    "build": "tsc",
-    "git": "git add dist/"
+    "typedoc": "typedoc src/client.ts",
+    "git": "git add dist/ && git add docs/"
   },
   "dependencies": {
     "colors": "^1.4.0",
@@ -35,8 +37,10 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-simple-import-sort": "^10.0.0",
     "husky": "^8.0.3",
+    "jsdoc": "^4.0.2",
     "madge": "^6.0.0",
     "prettier": "^2.8.4",
+    "typedoc": "^0.23.26",
     "typescript": "^4.9.5"
   }
 }

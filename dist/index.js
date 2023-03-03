@@ -17,7 +17,7 @@ const human_player_1 = require("./human-player");
 const remote_client_1 = require("./remote-client");
 (0, boot_1.boot)((bootOptions) => __awaiter(void 0, void 0, void 0, function* () {
     const { host, port, singleGame, human, observer, roomId, waitTimeout } = bootOptions;
-    const player = human ? human_player_1.humanPlayer : computer_player_1.computerPlayer;
+    const player = human || observer ? human_player_1.humanPlayer : computer_player_1.computerPlayer;
     yield remote_client_1.RemoteClient.start(port, host);
     yield (0, client_1.joinGame)(remote_client_1.RemoteClient, (0, common_1.intercept)(remote_client_1.RemoteClient, player, { singleGame, silent: true }), { roomId, filter: observer ? 'full' : 'waiting', waitTimeout });
 }), boot_1.hostOption, boot_1.portOption, boot_1.roomIdOption, boot_1.waitTimeoutOption, boot_1.singleGameOption, boot_1.computerOption, boot_1.humanOption, boot_1.observerOption, common_1.LOG_SCOPE_LOCAL_SERVER, 'board');

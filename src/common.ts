@@ -57,17 +57,17 @@ export interface IGameState {
 export type TRow = 0 | 1 | 2 | 3 | 4 | 5
 export type TColumn = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
-interface IInterceptOptions {
+export interface IInterceptOptions {
   singleGame?: boolean
   silent?: boolean
 }
 
 export const LOG_SCOPE_LOCAL_SERVER = 'server'
 
-const ROW_MIN = 0
-const ROW_MAX = 5
-const COLUMN_MIN = 0
-const COLUMN_MAX = 6
+export const ROW_MIN = 0
+export const ROW_MAX = 5
+export const COLUMN_MIN = 0
+export const COLUMN_MAX = 6
 
 const boardLogger = debug('board')
 
@@ -80,16 +80,37 @@ export const clone = <T extends {}>(obj: T) => JSON.parse(JSON.stringify(obj))
 
 export const createNewGameState = () => ({ board: createFilledArray<ECoin>((COLUMN_MAX + 1) * (ROW_MAX + 1), ECoin.NONE) })
 
+/**
+ * Converts row and column to board index.
+ *
+ * @param {TRow} row
+ * @param {TColumn} column
+ * @returns {number} Index in board.
+ */
 export const rowColumnToIndex = (row: TRow, column: TColumn) => {
   return (COLUMN_MAX + 1) * (ROW_MAX - row) + column
 }
 
+/**
+ * Get row from board.
+ *
+ * @param {TBoard} board
+ * @param {TRow} row - 0 = bottom 5 = top.
+ * @returns {ECoin[]} Part of board, direction from left to right.
+ */
 export const getBoardRow = (board: TBoard, row: TRow) => {
   const boardStart = (COLUMN_MAX + 1) * (ROW_MAX - row)
   const boardEnd = boardStart + (COLUMN_MAX + 1)
   return board.slice(boardStart, boardEnd)
 }
 
+/**
+ * Get column from board.
+ *
+ * @param {TBoard} board
+ * @param {TRow} row - 0 = left 6 = right.
+ * @returns {ECoin[]} part of board, direction from bottom to top.
+ */
 export const getBoardColumn = (board: TBoard, column: TColumn) => {
   const line: ECoin[] = []
   for (let row = ROW_MIN; row <= ROW_MAX; row++) {
@@ -98,6 +119,21 @@ export const getBoardColumn = (board: TBoard, column: TColumn) => {
   return line
 }
 
+/**
+ * Get top-left diagonal.
+ * ```
+ * 2 3 4 5
+ * 1 2 3 4 5
+ * 0 1 2 3 4 5
+ *   0 1 2 3 4 5
+ *     0 1 2 3 4
+ *       0 1 2 3
+ * ```
+ *
+ * @param {TBoard} board
+ * @param {TRow} diagonal - See description, (number represents diagonal index).
+ * @returns {ECoin[]} Part of board, direction from left to right.
+ */
 export const getBoardTopLeftDiagonal = (board: TBoard, diagonal: TRow) => {
   let row = Math.min(diagonal + 3, ROW_MAX) as TRow
   let column = Math.max(diagonal - 2, COLUMN_MIN) as TColumn
@@ -110,6 +146,21 @@ export const getBoardTopLeftDiagonal = (board: TBoard, diagonal: TRow) => {
   return result
 }
 
+/**
+ * Get bottom-left diagonal.
+ * ```
+ *       0 1 2 3
+ *     0 1 2 3 4
+ *   0 1 2 3 4 5
+ * 0 1 2 3 4 5
+ * 1 2 3 4 5
+ * 2 3 4 5
+ * ```
+ *
+ * @param {TBoard} board
+ * @param {TRow} diagonal - See description, (number represents diagonal index).
+ * @returns {ECoin[]} Part of board, direction from left to right
+ */
 export const getBoardBottomLeftDiagonal = (board: TBoard, diagonal: TRow) => {
   let row = Math.max(2 - diagonal, ROW_MIN) as TRow
   let column = Math.max(diagonal - 2, COLUMN_MIN) as TColumn
@@ -122,59 +173,90 @@ export const getBoardBottomLeftDiagonal = (board: TBoard, diagonal: TRow) => {
   return result
 }
 
-export const checkLineCombo = (line: ECoin[], coin: ECoin) => {
-  let maxCombo = 0
+/**
+ * Get maximum connected length found for color in line.
+ *
+ * @param {ECoin[]} line
+ * @param {ECoin} color - color to search for.
+ * @returns {number}
+ */
+export const getLineCombo = (line: ECoin[], color: ECoin) => {
   let combo = 0
-  const setMaxCombo = () => {
-    maxCombo = Math.max(maxCombo, combo)
-  }
-  const checkFn = (el: ECoin) => {
-    if (el === coin) {
-      combo++
-    } else {
-      setMaxCombo()
-      combo = 0
+  let tmpCombo = 0
+  const updateCombo = () => {
+    if (tmpCombo > combo) {
+      combo = tmpCombo
     }
+    tmpCombo = 0
   }
-  line.forEach(checkFn)
-  setMaxCombo()
-  return maxCombo
+  line.forEach((el) => {
+    if (el === color) {
+      tmpCombo++
+      return
+    } else {
+      updateCombo()
+    }
+  })
+  updateCombo()
+  return combo
 }
 
+/**
+ * Get first free row index or -1
+ *
+ * @param {TBoard} board
+ * @param {TColumn} column
+ * @returns {(TRow | -1)}
+ */
 export const getFreeBoardRowForColumn = (board: TBoard, column: TColumn) => {
   return getBoardColumn(board, column).indexOf(ECoin.NONE) as TRow | -1
 }
 
-export const insertCoinInColumn = (board: TBoard, column: TColumn, coin: ECoin) => {
+/**
+ * Inserts color in first free slot of column.
+ *
+ * @param {TBoard} board
+ * @param {TColumn} column
+ * @param {ECoin} color
+ * @returns {boolean}
+ */
+export const insertCoinInColumn = (board: TBoard, column: TColumn, color: ECoin) => {
   const row = getFreeBoardRowForColumn(board, column)
   if (row === -1) {
     return false
   }
-  board[rowColumnToIndex(row, column)] = coin
+  board[rowColumnToIndex(row, column)] = color
   return true
 }
 
-export const checkBoardForWinner = (board: TBoard, coin: ECoin) => {
+/**
+ * Returns true when color won the game, false otherwise,
+ *
+ * @param {TBoard} board
+ * @param {ECoin} color
+ * @returns {boolean}
+ */
+export const checkBoardForWinner = (board: TBoard, color: ECoin) => {
   for (let row = ROW_MIN; row <= ROW_MAX; row++) {
-    let combo = checkLineCombo(getBoardRow(board, row as TRow), coin)
+    const combo = getLineCombo(getBoardRow(board, row as TRow), color)
     if (combo >= 4) {
       return true
     }
   }
   for (let column = COLUMN_MIN; column <= COLUMN_MAX; column++) {
-    let combo = checkLineCombo(getBoardColumn(board, column as TRow), coin)
+    const combo = getLineCombo(getBoardColumn(board, column as TRow), color)
     if (combo >= 4) {
       return true
     }
   }
   for (let diagonal = ROW_MIN; diagonal <= ROW_MAX; diagonal++) {
-    let combo = checkLineCombo(getBoardTopLeftDiagonal(board, diagonal as TRow), coin)
+    const combo = getLineCombo(getBoardTopLeftDiagonal(board, diagonal as TRow), color)
     if (combo >= 4) {
       return true
     }
   }
   for (let diagonal = ROW_MIN; diagonal <= ROW_MAX; diagonal++) {
-    let combo = checkLineCombo(getBoardBottomLeftDiagonal(board, diagonal as TRow), coin)
+    const combo = getLineCombo(getBoardBottomLeftDiagonal(board, diagonal as TRow), color)
     if (combo >= 4) {
       return true
     }
@@ -182,46 +264,88 @@ export const checkBoardForWinner = (board: TBoard, coin: ECoin) => {
   return false
 }
 
+/**
+ * Returns true when board is completely full, false otherwise.
+ *
+ * @param {TBoard} board
+ * @returns {boolean}
+ */
 export const checkBoardForTie = (board: TBoard) => {
   return board.every((el) => el !== ECoin.NONE)
 }
 
-export const checkboardForScore = (board: TBoard, coin: number) => {
-  if (checkBoardForWinner(board, 3 - coin)) {
+/**
+ * Get maximum connected length found for color in board.
+ * Returns 0 when other player won the game.
+ *
+ * @param {TBoard} board
+ * @param {number} color
+ * @returns {number}
+ */
+export const getBoardScore = (board: TBoard, color: number) => {
+  const otherColor = 3 - color
+  if (checkBoardForWinner(board, otherColor)) {
     return 0
   }
   let combo = 0
   for (let row = ROW_MIN; row <= ROW_MAX; row++) {
-    combo = Math.max(checkLineCombo(getBoardRow(board, row as TRow), coin), combo)
+    combo = Math.max(getLineCombo(getBoardRow(board, row as TRow), color), combo)
   }
   for (let column = COLUMN_MIN; column <= COLUMN_MAX; column++) {
-    combo = Math.max(checkLineCombo(getBoardColumn(board, column as TRow), coin), combo)
+    combo = Math.max(getLineCombo(getBoardColumn(board, column as TRow), color), combo)
   }
   for (let diagonal = ROW_MIN; diagonal <= ROW_MAX; diagonal++) {
-    combo = Math.max(checkLineCombo(getBoardTopLeftDiagonal(board, diagonal as TRow), coin), combo)
+    combo = Math.max(getLineCombo(getBoardTopLeftDiagonal(board, diagonal as TRow), color), combo)
   }
   for (let diagonal = ROW_MIN; diagonal <= ROW_MAX; diagonal++) {
-    combo = Math.max(checkLineCombo(getBoardBottomLeftDiagonal(board, diagonal as TRow), coin), combo)
+    combo = Math.max(getLineCombo(getBoardBottomLeftDiagonal(board, diagonal as TRow), color), combo)
   }
   return combo
 }
 
-export const printCoin = (coin: ECoin) => (process.stderr.isTTY ? colors[coin] : coin)
+/**
+ * Returns coin as colored unicode circle or number.
+ *
+ * @param {ECoin} coin
+ * @param {boolean} [useColors=process.stderr.isTTY]
+ * @returns {string}
+ */
+export const printCoin = (coin: ECoin, useColors: boolean = process.stderr.isTTY) => (useColors ? colors[coin] : `${coin}`)
 
-export const printBoard = (board: TBoard, logger: (...args: any[]) => void = console.log) => {
-  for (let i = ROW_MAX; i >= ROW_MIN; i--) {
-    logger(
-      `|${getBoardRow(board, i as TRow)
-        .map((el) => printCoin(el))
-        .join('|')}|`
-    )
+/**
+ * Returns line as string.
+ *
+ * @param {ECoin[]} line
+ * @param {boolean} [useColors=process.stderr.isTTY]
+ * @returns {string}
+ */
+export const printLine = (line: ECoin[], useColors = process.stderr.isTTY) => `|${line.map((el) => printCoin(el, useColors)).join('|')}|`
+
+/**
+ * Prints entire board.
+ *
+ * @param {ECoin[]} board
+ * @callback {console~log} [logger=console.log]
+ * @param {boolean} [useColors=process.stderr.isTTY]
+ * @returns {string}
+ */
+export const printBoard = (board: TBoard, logger: (...args: any[]) => void = console.log, useColors = process.stderr.isTTY) => {
+  for (let row = ROW_MAX; row >= ROW_MIN; row--) {
+    logger(printLine(getBoardRow(board, row as TRow), useColors))
   }
   logger('')
 }
 
-export const getPlayerName = (playerRole: number) => {
+/**
+ * Generates playerName based on role,
+ *
+ * @param {EPlayerRole} playerRole
+ * @param {boolean} [useColors=process.stderr.isTTY]
+ * @returns {string}
+ */
+export const getPlayerName = (playerRole: EPlayerRole, useColors = process.stderr.isTTY) => {
   if ([EPlayerRole.RED, EPlayerRole.YELLOW].includes(playerRole)) {
-    return process.stderr.isTTY ? `${printCoin(playerRole)}  player` : `player ${playerRole}`
+    return useColors ? `${printCoin(playerRole as unknown as ECoin)}  player` : `player ${playerRole}`
   } else {
     return 'observer'
   }

@@ -8,7 +8,7 @@ import { RemoteClient } from './remote-client'
 boot(
   async (bootOptions) => {
     const { host, port, singleGame, human, observer, roomId, waitTimeout } = bootOptions
-    const player = human ? humanPlayer : computerPlayer
+    const player = human || observer ? humanPlayer : computerPlayer
     await RemoteClient.start(port, host)
     await joinGame(RemoteClient, intercept(RemoteClient, player, { singleGame, silent: true }), { roomId, filter: observer ? 'full' : 'waiting', waitTimeout })
   },

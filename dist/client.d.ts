@@ -1,4 +1,4 @@
-export { checkboardForScore, checkBoardForTie, checkBoardForWinner, checkLineCombo, ECoin, EPlayerRole, getBoardBottomLeftDiagonal, getBoardColumn, getBoardRow, getBoardTopLeftDiagonal, getFreeBoardRowForColumn, getPlayerName, IGameState, IJoinOptions, insertCoinInColumn, intercept, IPlayer, IRoom, IServer, joinGame, leaveGame, printBoard, printCoin, rowColumnToIndex, TBoard, TColumn, TExecuteTurn, THandler, TRow, } from './common';
+export { checkBoardForTie, checkBoardForWinner, COLUMN_MAX, COLUMN_MIN, ECoin, EPlayerRole, getBoardBottomLeftDiagonal, getBoardColumn, getBoardRow, getBoardScore, getBoardTopLeftDiagonal, getFreeBoardRowForColumn, getLineCombo, getPlayerName, IGameState, IInterceptOptions, IJoinOptions, insertCoinInColumn, intercept, IPlayer, IRoom, IServer, joinGame, leaveGame, LOG_SCOPE_LOCAL_SERVER, printBoard, printCoin, ROW_MAX, ROW_MIN, rowColumnToIndex, TBoard, TColumn, TExecuteTurn, THandler, TRow, } from './common';
 export { LocalServer } from './local-server';
 export { RemoteClient } from './remote-client';
 //# sourceMappingURL=client.d.ts.map

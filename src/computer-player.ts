@@ -1,4 +1,4 @@
-import { getFreeBoardRowForColumn, insertCoinInColumn, printBoard, TColumn, THandler } from './common'
+import { getFreeBoardRowForColumn, insertCoinInColumn, printBoard, TColumn, THandler } from './client'
 
 export const computerPlayer: THandler = (playerRole, { board }, executeTurn) => {
   console.clear()
