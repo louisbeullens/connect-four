@@ -1,5 +1,5 @@
 import * as WEBSOCKET from 'websocket';
-import { EPlayerRole, IGameState, IJoinOptions, TColumn, TExecuteTurn } from './common';
+import { EPlayerRole, IGameState, IJoinOptions, TColumn, TExecuteTurn } from './common-types';
 export interface IPlayerExtension {
     connection?: WEBSOCKET.connection;
     executeTurn?: TExecuteTurn;
@@ -49,10 +49,10 @@ type IMessage = {
     };
 } | {
     type: 'serverBroadcast';
-    payload: string;
+    payload: string | any[];
 };
 export declare const parseMessage: (raw: string) => IMessage;
 export declare const stringifyMessage: (type: IMessage['type'], payload: IMessage['payload']) => string;
-export declare const sendMessage: (connection: WEBSOCKET.connection | WEBSOCKET.w3cwebsocket, type: IMessage['type'], payload: IMessage['payload']) => void;
+export declare const sendMessage: (connection: WebSocket | WEBSOCKET.connection, type: IMessage['type'], payload: IMessage['payload']) => void;
 export {};
 //# sourceMappingURL=websocket-common.d.ts.map

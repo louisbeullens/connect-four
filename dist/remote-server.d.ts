@@ -1,4 +1,4 @@
-import { IRoom } from './common';
+import { IRoom } from './common-types';
 interface IWebsocketServer {
     start(port: number): Promise<void>;
     stop(): void;

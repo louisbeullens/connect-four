@@ -9,35 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.intercept = exports.leaveGame = exports.joinGame = exports.hostGame = exports.getRedAndOrYellowPlayer = exports.isPlayerRedOrYellow = exports.getPlayerName = exports.printBoard = exports.printLine = exports.printCoin = exports.getBoardScore = exports.checkBoardForTie = exports.checkBoardForWinner = exports.insertCoinInColumn = exports.getFreeBoardRowForColumn = exports.getLineCombo = exports.getBoardBottomLeftDiagonal = exports.getBoardTopLeftDiagonal = exports.getBoardColumn = exports.getBoardRow = exports.rowColumnToIndex = exports.createNewGameState = exports.clone = exports.COLUMN_MAX = exports.COLUMN_MIN = exports.ROW_MAX = exports.ROW_MIN = exports.LOG_SCOPE_LOCAL_SERVER = exports.EPlayerRole = exports.ECoin = void 0;
+exports.intercept = exports.leaveGame = exports.joinGame = exports.hostGame = exports.getRedAndOrYellowPlayer = exports.isPlayerRedOrYellow = exports.getPlayerName = exports.printBoard = exports.printLine = exports.printCoin = exports.getBoardScore = exports.checkBoardForTie = exports.checkBoardForWinner = exports.insertCoinInColumn = exports.getFreeBoardRowForColumn = exports.getLineCombo = exports.getBoardBottomLeftDiagonal = exports.getBoardTopLeftDiagonal = exports.getBoardColumn = exports.getBoardRow = exports.rowColumnToIndex = exports.createNewGameState = exports.clone = void 0;
 const debug_1 = require("debug");
+const common_types_1 = require("./common-types");
 require("colors");
-var ECoin;
-(function (ECoin) {
-    ECoin[ECoin["NONE"] = 0] = "NONE";
-    ECoin[ECoin["RED"] = 1] = "RED";
-    ECoin[ECoin["YELLOW"] = 2] = "YELLOW";
-})(ECoin = exports.ECoin || (exports.ECoin = {}));
-var EPlayerRole;
-(function (EPlayerRole) {
-    EPlayerRole[EPlayerRole["NONE"] = 0] = "NONE";
-    EPlayerRole[EPlayerRole["RED"] = 1] = "RED";
-    EPlayerRole[EPlayerRole["YELLOW"] = 2] = "YELLOW";
-    EPlayerRole[EPlayerRole["OBSERVER"] = 3] = "OBSERVER";
-})(EPlayerRole = exports.EPlayerRole || (exports.EPlayerRole = {}));
-exports.LOG_SCOPE_LOCAL_SERVER = 'server';
-exports.ROW_MIN = 0;
-exports.ROW_MAX = 5;
-exports.COLUMN_MIN = 0;
-exports.COLUMN_MAX = 6;
 const boardLogger = (0, debug_1.default)('board');
 const circle = String.fromCodePoint(0x2b24);
 const colors = [' ', circle.red, circle.yellow];
 const createFilledArray = (length, fill) => Array.from({ length }, () => fill);
 const clone = (obj) => JSON.parse(JSON.stringify(obj));
 exports.clone = clone;
-const createNewGameState = () => ({ board: createFilledArray((exports.COLUMN_MAX + 1) * (exports.ROW_MAX + 1), ECoin.NONE) });
+const createNewGameState = () => ({ board: createFilledArray((common_types_1.COLUMN_MAX + 1) * (common_types_1.ROW_MAX + 1), common_types_1.ECoin.NONE) });
 exports.createNewGameState = createNewGameState;
+const isTTY = () => { var _a; return (((_a = process === null || process === void 0 ? void 0 : process.stderr) === null || _a === void 0 ? void 0 : _a.isTTY) ? true : false); };
 /**
  * Converts row and column to board index.
  *
@@ -46,7 +30,7 @@ exports.createNewGameState = createNewGameState;
  * @returns {number} Index in board.
  */
 const rowColumnToIndex = (row, column) => {
-    return (exports.COLUMN_MAX + 1) * (exports.ROW_MAX - row) + column;
+    return (common_types_1.COLUMN_MAX + 1) * (common_types_1.ROW_MAX - row) + column;
 };
 exports.rowColumnToIndex = rowColumnToIndex;
 /**
@@ -57,8 +41,8 @@ exports.rowColumnToIndex = rowColumnToIndex;
  * @returns {ECoin[]} Part of board, direction from left to right.
  */
 const getBoardRow = (board, row) => {
-    const boardStart = (exports.COLUMN_MAX + 1) * (exports.ROW_MAX - row);
-    const boardEnd = boardStart + (exports.COLUMN_MAX + 1);
+    const boardStart = (common_types_1.COLUMN_MAX + 1) * (common_types_1.ROW_MAX - row);
+    const boardEnd = boardStart + (common_types_1.COLUMN_MAX + 1);
     return board.slice(boardStart, boardEnd);
 };
 exports.getBoardRow = getBoardRow;
@@ -71,7 +55,7 @@ exports.getBoardRow = getBoardRow;
  */
 const getBoardColumn = (board, column) => {
     const line = [];
-    for (let row = exports.ROW_MIN; row <= exports.ROW_MAX; row++) {
+    for (let row = common_types_1.ROW_MIN; row <= common_types_1.ROW_MAX; row++) {
         line.push(board[(0, exports.rowColumnToIndex)(row, column)]);
     }
     return line;
@@ -93,10 +77,10 @@ exports.getBoardColumn = getBoardColumn;
  * @returns {ECoin[]} Part of board, direction from left to right.
  */
 const getBoardTopLeftDiagonal = (board, diagonal) => {
-    let row = Math.min(diagonal + 3, exports.ROW_MAX);
-    let column = Math.max(diagonal - 2, exports.COLUMN_MIN);
+    let row = Math.min(diagonal + 3, common_types_1.ROW_MAX);
+    let column = Math.max(diagonal - 2, common_types_1.COLUMN_MIN);
     const result = [];
-    while (row >= exports.ROW_MIN && column <= exports.COLUMN_MAX) {
+    while (row >= common_types_1.ROW_MIN && column <= common_types_1.COLUMN_MAX) {
         result.push(board[(0, exports.rowColumnToIndex)(row, column)]);
         row--;
         column++;
@@ -120,10 +104,10 @@ exports.getBoardTopLeftDiagonal = getBoardTopLeftDiagonal;
  * @returns {ECoin[]} Part of board, direction from left to right
  */
 const getBoardBottomLeftDiagonal = (board, diagonal) => {
-    let row = Math.max(2 - diagonal, exports.ROW_MIN);
-    let column = Math.max(diagonal - 2, exports.COLUMN_MIN);
+    let row = Math.max(2 - diagonal, common_types_1.ROW_MIN);
+    let column = Math.max(diagonal - 2, common_types_1.COLUMN_MIN);
     const result = [];
-    while (row <= exports.ROW_MAX && column <= exports.COLUMN_MAX) {
+    while (row <= common_types_1.ROW_MAX && column <= common_types_1.COLUMN_MAX) {
         result.push(board[(0, exports.rowColumnToIndex)(row, column)]);
         row++;
         column++;
@@ -168,7 +152,7 @@ exports.getLineCombo = getLineCombo;
  * @returns {(TRow | -1)}
  */
 const getFreeBoardRowForColumn = (board, column) => {
-    return (0, exports.getBoardColumn)(board, column).indexOf(ECoin.NONE);
+    return (0, exports.getBoardColumn)(board, column).indexOf(common_types_1.ECoin.NONE);
 };
 exports.getFreeBoardRowForColumn = getFreeBoardRowForColumn;
 /**
@@ -196,25 +180,25 @@ exports.insertCoinInColumn = insertCoinInColumn;
  * @returns {boolean}
  */
 const checkBoardForWinner = (board, color) => {
-    for (let row = exports.ROW_MIN; row <= exports.ROW_MAX; row++) {
+    for (let row = common_types_1.ROW_MIN; row <= common_types_1.ROW_MAX; row++) {
         const combo = (0, exports.getLineCombo)((0, exports.getBoardRow)(board, row), color);
         if (combo >= 4) {
             return true;
         }
     }
-    for (let column = exports.COLUMN_MIN; column <= exports.COLUMN_MAX; column++) {
+    for (let column = common_types_1.COLUMN_MIN; column <= common_types_1.COLUMN_MAX; column++) {
         const combo = (0, exports.getLineCombo)((0, exports.getBoardColumn)(board, column), color);
         if (combo >= 4) {
             return true;
         }
     }
-    for (let diagonal = exports.ROW_MIN; diagonal <= exports.ROW_MAX; diagonal++) {
+    for (let diagonal = common_types_1.ROW_MIN; diagonal <= common_types_1.ROW_MAX; diagonal++) {
         const combo = (0, exports.getLineCombo)((0, exports.getBoardTopLeftDiagonal)(board, diagonal), color);
         if (combo >= 4) {
             return true;
         }
     }
-    for (let diagonal = exports.ROW_MIN; diagonal <= exports.ROW_MAX; diagonal++) {
+    for (let diagonal = common_types_1.ROW_MIN; diagonal <= common_types_1.ROW_MAX; diagonal++) {
         const combo = (0, exports.getLineCombo)((0, exports.getBoardBottomLeftDiagonal)(board, diagonal), color);
         if (combo >= 4) {
             return true;
@@ -230,7 +214,7 @@ exports.checkBoardForWinner = checkBoardForWinner;
  * @returns {boolean}
  */
 const checkBoardForTie = (board) => {
-    return board.every((el) => el !== ECoin.NONE);
+    return board.every((el) => el !== common_types_1.ECoin.NONE);
 };
 exports.checkBoardForTie = checkBoardForTie;
 /**
@@ -247,16 +231,16 @@ const getBoardScore = (board, color) => {
         return 0;
     }
     let combo = 0;
-    for (let row = exports.ROW_MIN; row <= exports.ROW_MAX; row++) {
+    for (let row = common_types_1.ROW_MIN; row <= common_types_1.ROW_MAX; row++) {
         combo = Math.max((0, exports.getLineCombo)((0, exports.getBoardRow)(board, row), color), combo);
     }
-    for (let column = exports.COLUMN_MIN; column <= exports.COLUMN_MAX; column++) {
+    for (let column = common_types_1.COLUMN_MIN; column <= common_types_1.COLUMN_MAX; column++) {
         combo = Math.max((0, exports.getLineCombo)((0, exports.getBoardColumn)(board, column), color), combo);
     }
-    for (let diagonal = exports.ROW_MIN; diagonal <= exports.ROW_MAX; diagonal++) {
+    for (let diagonal = common_types_1.ROW_MIN; diagonal <= common_types_1.ROW_MAX; diagonal++) {
         combo = Math.max((0, exports.getLineCombo)((0, exports.getBoardTopLeftDiagonal)(board, diagonal), color), combo);
     }
-    for (let diagonal = exports.ROW_MIN; diagonal <= exports.ROW_MAX; diagonal++) {
+    for (let diagonal = common_types_1.ROW_MIN; diagonal <= common_types_1.ROW_MAX; diagonal++) {
         combo = Math.max((0, exports.getLineCombo)((0, exports.getBoardBottomLeftDiagonal)(board, diagonal), color), combo);
     }
     return combo;
@@ -269,7 +253,7 @@ exports.getBoardScore = getBoardScore;
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-const printCoin = (coin, useColors = process.stderr.isTTY) => (useColors ? colors[coin] : `${coin}`);
+const printCoin = (coin, useColors = isTTY()) => (useColors ? colors[coin] : `${coin}`);
 exports.printCoin = printCoin;
 /**
  * Returns line as string.
@@ -278,7 +262,7 @@ exports.printCoin = printCoin;
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-const printLine = (line, useColors = process.stderr.isTTY) => `|${line.map((el) => (0, exports.printCoin)(el, useColors)).join('|')}|`;
+const printLine = (line, useColors = isTTY()) => `|${line.map((el) => (0, exports.printCoin)(el, useColors)).join('|')}|`;
 exports.printLine = printLine;
 /**
  * Prints entire board.
@@ -288,8 +272,8 @@ exports.printLine = printLine;
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-const printBoard = (board, logger = console.log, useColors = process.stderr.isTTY) => {
-    for (let row = exports.ROW_MAX; row >= exports.ROW_MIN; row--) {
+const printBoard = (board, logger = console.log, useColors = isTTY()) => {
+    for (let row = common_types_1.ROW_MAX; row >= common_types_1.ROW_MIN; row--) {
         logger((0, exports.printLine)((0, exports.getBoardRow)(board, row), useColors));
     }
     logger('');
@@ -302,8 +286,8 @@ exports.printBoard = printBoard;
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-const getPlayerName = (playerRole, useColors = process.stderr.isTTY) => {
-    if ([EPlayerRole.RED, EPlayerRole.YELLOW].includes(playerRole)) {
+const getPlayerName = (playerRole, useColors = isTTY()) => {
+    if ([common_types_1.EPlayerRole.RED, common_types_1.EPlayerRole.YELLOW].includes(playerRole)) {
         return useColors ? `${(0, exports.printCoin)(playerRole)}  player` : `player ${playerRole}`;
     }
     else {
@@ -312,7 +296,7 @@ const getPlayerName = (playerRole, useColors = process.stderr.isTTY) => {
 };
 exports.getPlayerName = getPlayerName;
 // utilities
-const isPlayerRedOrYellow = (player) => [EPlayerRole.RED, EPlayerRole.YELLOW].includes(player.role);
+const isPlayerRedOrYellow = (player) => [common_types_1.EPlayerRole.RED, common_types_1.EPlayerRole.YELLOW].includes(player.role);
 exports.isPlayerRedOrYellow = isPlayerRedOrYellow;
 const getRedAndOrYellowPlayer = (players) => players.filter(exports.isPlayerRedOrYellow);
 exports.getRedAndOrYellowPlayer = getRedAndOrYellowPlayer;

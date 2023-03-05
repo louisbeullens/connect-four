@@ -1,6 +1,6 @@
 import debug from 'debug'
 import * as WEBSOCKET from 'websocket'
-import { EPlayerRole, IGameState, IJoinOptions, TColumn, TExecuteTurn } from './common'
+import { EPlayerRole, IGameState, IJoinOptions, TColumn, TExecuteTurn } from './common-types'
 
 export interface IPlayerExtension {
   connection?: WEBSOCKET.connection
@@ -37,7 +37,7 @@ type IMessage =
     }
   | {
       type: 'serverBroadcast'
-      payload: string
+      payload: string | any[]
     }
 
 const socketLogger = debug('network:websocket')
@@ -53,12 +53,14 @@ export const stringifyMessage = (type: IMessage['type'], payload: IMessage['payl
   return JSON.stringify(message)
 }
 
-export const sendMessage = (connection: WEBSOCKET.connection | WEBSOCKET.w3cwebsocket, type: IMessage['type'], payload: IMessage['payload']) => {
+export const sendMessage = (connection: WEBSOCKET.connection | WebSocket | undefined, type: IMessage['type'], payload: IMessage['payload']) => {
+  if (!connection) {
+    return
+  }
   const message = stringifyMessage(type, payload)
   setTimeout(() => {
-    socketLogger('send', message)
-    if (connection instanceof WEBSOCKET.w3cwebsocket) {
-      if (connection.readyState !== connection.OPEN) {
+    if (connection instanceof WebSocket) {
+      if (connection.readyState !== WebSocket.OPEN) {
         return
       }
     } else if (connection instanceof WEBSOCKET.connection) {
@@ -66,6 +68,7 @@ export const sendMessage = (connection: WEBSOCKET.connection | WEBSOCKET.w3cwebs
         return
       }
     }
+    socketLogger('send', message)
     connection.send(message)
   }, 1)
 }

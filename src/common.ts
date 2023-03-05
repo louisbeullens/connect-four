@@ -1,73 +1,22 @@
 import debug from 'debug'
+import {
+  COLUMN_MAX,
+  COLUMN_MIN,
+  ECoin,
+  EPlayerRole,
+  IInterceptOptions,
+  IJoinOptions,
+  IPlayer,
+  IRoom,
+  IServer,
+  ROW_MAX,
+  ROW_MIN,
+  TBoard,
+  TColumn,
+  THandler,
+  TRow,
+} from './common-types'
 import 'colors'
-
-export type TExecuteTurn = (column: TColumn) => void
-export type THandler = (playerId: number, state: IGameState, executeTurn: TExecuteTurn, roomId: string) => void
-
-export enum ECoin {
-  NONE = 0,
-  RED = 1,
-  YELLOW = 2,
-}
-
-export enum EPlayerRole {
-  NONE = 0,
-  RED = 1,
-  YELLOW = 2,
-  OBSERVER = 3,
-}
-
-export type IPlayer<P extends {} = {}> = {
-  role: EPlayerRole
-  isBot?: boolean
-  handler: THandler
-} & P
-
-export interface IRoom<P extends {} = {}> {
-  id: string
-  state: IGameState
-  players: IPlayer<P>[]
-  broadcast(message: string, excludedPlayer?: IPlayer): void
-}
-
-export interface IJoinOptions {
-  roomId?: string
-  filter?: 'waiting' | 'full' | 'all'
-  waitTimeout?: number
-}
-export interface IServer {
-  hostGame(roomId: string): IRoom
-  joinGame(handler: THandler, options?: IJoinOptions): Promise<IPlayer | undefined>
-  leaveGame(handler: THandler, roomId: string): Promise<void>
-  getRoomIds(filter?: IJoinOptions['filter']): Promise<string[]>
-  stop(): void
-}
-
-export type TBoard = ECoin[]
-
-export interface IGameState {
-  board: TBoard
-  turn?: EPlayerRole
-  hasEnded?: boolean
-  status?: 'raceConflict' | 'invalidColumn' | 'win' | 'loose'
-  lastPlayerId?: number
-  lastPlayerAction?: TColumn
-}
-
-export type TRow = 0 | 1 | 2 | 3 | 4 | 5
-export type TColumn = 0 | 1 | 2 | 3 | 4 | 5 | 6
-
-export interface IInterceptOptions {
-  singleGame?: boolean
-  silent?: boolean
-}
-
-export const LOG_SCOPE_LOCAL_SERVER = 'server'
-
-export const ROW_MIN = 0
-export const ROW_MAX = 5
-export const COLUMN_MIN = 0
-export const COLUMN_MAX = 6
 
 const boardLogger = debug('board')
 
@@ -79,6 +28,8 @@ const createFilledArray = <T extends any>(length: number, fill: T) => Array.from
 export const clone = <T extends {}>(obj: T) => JSON.parse(JSON.stringify(obj))
 
 export const createNewGameState = () => ({ board: createFilledArray<ECoin>((COLUMN_MAX + 1) * (ROW_MAX + 1), ECoin.NONE) })
+
+const isTTY = () => (process?.stderr?.isTTY ? true : false)
 
 /**
  * Converts row and column to board index.
@@ -310,7 +261,7 @@ export const getBoardScore = (board: TBoard, color: number) => {
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-export const printCoin = (coin: ECoin, useColors: boolean = process.stderr.isTTY) => (useColors ? colors[coin] : `${coin}`)
+export const printCoin = (coin: ECoin, useColors: boolean = isTTY()) => (useColors ? colors[coin] : `${coin}`)
 
 /**
  * Returns line as string.
@@ -319,7 +270,7 @@ export const printCoin = (coin: ECoin, useColors: boolean = process.stderr.isTTY
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-export const printLine = (line: ECoin[], useColors = process.stderr.isTTY) => `|${line.map((el) => printCoin(el, useColors)).join('|')}|`
+export const printLine = (line: ECoin[], useColors = isTTY()) => `|${line.map((el) => printCoin(el, useColors)).join('|')}|`
 
 /**
  * Prints entire board.
@@ -329,7 +280,7 @@ export const printLine = (line: ECoin[], useColors = process.stderr.isTTY) => `|
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-export const printBoard = (board: TBoard, logger: (...args: any[]) => void = console.log, useColors = process.stderr.isTTY) => {
+export const printBoard = (board: TBoard, logger: (...args: any[]) => void = console.log, useColors = isTTY()) => {
   for (let row = ROW_MAX; row >= ROW_MIN; row--) {
     logger(printLine(getBoardRow(board, row as TRow), useColors))
   }
@@ -343,7 +294,7 @@ export const printBoard = (board: TBoard, logger: (...args: any[]) => void = con
  * @param {boolean} [useColors=process.stderr.isTTY]
  * @returns {string}
  */
-export const getPlayerName = (playerRole: EPlayerRole, useColors = process.stderr.isTTY) => {
+export const getPlayerName = (playerRole: EPlayerRole, useColors = isTTY()) => {
   if ([EPlayerRole.RED, EPlayerRole.YELLOW].includes(playerRole)) {
     return useColors ? `${printCoin(playerRole as unknown as ECoin)}  player` : `player ${playerRole}`
   } else {

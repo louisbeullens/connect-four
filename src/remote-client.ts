@@ -1,34 +1,48 @@
 import debug from 'debug'
 import { EventEmitter } from 'events'
 import { v4 as uuid } from 'uuid'
-import * as WEBSOCKET from 'websocket'
-import { EPlayerRole, getPlayerName, hostGame, IJoinOptions, IPlayer, IRoom, IServer, LOG_SCOPE_LOCAL_SERVER, TColumn, THandler } from './common'
-import { LocalServer } from './local-server'
+import { w3cwebsocket } from 'websocket'
+import { getPlayerName, hostGame } from './common'
+import { EPlayerRole, IJoinOptions, IPlayer, IRoom, IServer, LOG_SCOPE_LOCAL_SERVER, TColumn, THandler } from './common-types'
+import { LocalServer, printServerMessage } from './local-server'
 import { IPlayerExtension, parseMessage, sendMessage } from './websocket-common'
+import 'websocket-polyfill'
 
 interface IWebsocketClient extends IServer {
-  start(port: number, host?: string): Promise<WEBSOCKET.w3cwebsocket>
+  start(port: number, host?: string): Promise<WebSocket>
+  connected: boolean
 }
 
 type IRemoteClientPlayerExtension = IPlayerExtension & { originalHandler: THandler }
 
 const clientLogger = debug('client:remote')
-const serverLogger = debug(LOG_SCOPE_LOCAL_SERVER)
 
 const eventEmitter = new EventEmitter()
 
-let connection: WEBSOCKET.w3cwebsocket | undefined
-
 const rooms: { [id: string]: IRoom<IRemoteClientPlayerExtension> } = {}
 
+let connection: WebSocket | undefined
+
 export const RemoteClient: IWebsocketClient = {
-  start(port, host = 'localhost') {
-    return new Promise<WEBSOCKET.w3cwebsocket>((resolve) => {
-      connection = new WEBSOCKET.w3cwebsocket(`ws://${host}:${port}`)
+  start(this: IWebsocketClient, port = 3000, host = 'localhost') {
+    return new Promise<WebSocket>((resolve) => {
+      if (connection && connection.readyState === WebSocket.CONNECTING) {
+        eventEmitter.once('connect', () => resolve(connection))
+        return
+      }
+      connection = new WebSocket(`ws://${host}:${port}`)
       connection.onopen = () => {
+        this.connected = true
+        eventEmitter.emit('connect')
         resolve(connection)
       }
-      connection.onmessage = (e) => {
+      connection.onclose = connection.onerror = () => {
+        this.connected = false
+        eventEmitter.emit('disconnect')
+        Object.values(rooms).forEach(({ id, players }) => players.forEach((player) => this.leaveGame(player.originalHandler, id)))
+        connection = undefined
+      }
+      connection.onmessage = (e: { data: string }) => {
         if (typeof e.data !== 'string') {
           return
         }
@@ -73,7 +87,7 @@ export const RemoteClient: IWebsocketClient = {
             break
           }
           case 'serverBroadcast': {
-            serverLogger(message.payload)
+            printServerMessage(message.payload)
             break
           }
         }
@@ -87,7 +101,12 @@ export const RemoteClient: IWebsocketClient = {
     rooms[roomId] = rooms[roomId] ?? hostGame<IRemoteClientPlayerExtension>(LocalServer, roomId)
     return rooms[roomId]
   },
-  async joinGame(this: IServer, handler: THandler, options: IJoinOptions = {}) {
+  async joinGame(this: IWebsocketClient, handler: THandler, options: IJoinOptions = {}) {
+    if (connection?.readyState !== w3cwebsocket.OPEN) {
+      return new Promise((resolve) => {
+        eventEmitter.once('connect', () => this.joinGame(handler, options).then(resolve))
+      })
+    }
     let { roomId, filter, waitTimeout } = options
     roomId = roomId ?? (await this.getRoomIds(filter))[0] ?? uuid()
     const room = (rooms[roomId] = rooms[roomId] ?? hostGame<IRemoteClientPlayerExtension>(LocalServer, roomId))
@@ -127,4 +146,5 @@ export const RemoteClient: IWebsocketClient = {
       })
     })
   },
+  connected: false,
 }

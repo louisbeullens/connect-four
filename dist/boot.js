@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.boot = exports.observerOption = exports.humanOption = exports.computerOption = exports.singleGameOption = exports.waitTimeoutOption = exports.roomIdOption = exports.hostOption = exports.portOption = void 0;
 const commander_1 = require("commander");
 const debug_1 = require("debug");
-const common_1 = require("./common");
+const client_1 = require("./client");
+const common_types_1 = require("./common-types");
 debug_1.default.formatArgs = function (args) {
     const { namespace: name, useColors } = this;
     if (useColors) {
@@ -20,6 +21,7 @@ debug_1.default.formatArgs = function (args) {
         args[0] = new Date().toISOString() + ' ' + name + ': ' + args[0];
     }
 };
+debug_1.default.formatters.P = (playerRole) => (0, client_1.getPlayerName)(playerRole);
 const myParseInt = (value) => Number(value);
 exports.portOption = new commander_1.Option('-p, --port [port]', 'Specify custom port.').argParser(myParseInt).default(3000);
 exports.hostOption = new commander_1.Option('-h, --host [host]', 'Specify custom host.').default('localhost');
@@ -29,7 +31,7 @@ exports.singleGameOption = new commander_1.Option('-s, --single-game', 'Play a s
 exports.computerOption = new commander_1.Option('-C, --computer', 'Let computer play.').default(true);
 exports.humanOption = new commander_1.Option('-H, --human', 'Play as human.').default(false);
 exports.observerOption = new commander_1.Option('-O, --observer', 'Observe others play.').default(false);
-const allowedLogScopes = ['board', 'client:*', 'client:remote', 'network:*', 'network:websocket', common_1.LOG_SCOPE_LOCAL_SERVER];
+const allowedLogScopes = ['board', 'client:*', 'client:remote', 'network:*', 'network:websocket', common_types_1.LOG_SCOPE_LOCAL_SERVER];
 const logScopesArgument = new commander_1.Argument('[logScopes...]').argOptional().choices(allowedLogScopes);
 const boot = (callback, ...options) => {
     const program = new commander_1.Command();

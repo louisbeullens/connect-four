@@ -13,21 +13,34 @@ exports.RemoteClient = void 0;
 const debug_1 = require("debug");
 const events_1 = require("events");
 const uuid_1 = require("uuid");
-const WEBSOCKET = require("websocket");
+const websocket_1 = require("websocket");
 const common_1 = require("./common");
+const common_types_1 = require("./common-types");
 const local_server_1 = require("./local-server");
 const websocket_common_1 = require("./websocket-common");
+require("websocket-polyfill");
 const clientLogger = (0, debug_1.default)('client:remote');
-const serverLogger = (0, debug_1.default)(common_1.LOG_SCOPE_LOCAL_SERVER);
 const eventEmitter = new events_1.EventEmitter();
-let connection;
 const rooms = {};
+let connection;
 exports.RemoteClient = {
-    start(port, host = 'localhost') {
+    start(port = 3000, host = 'localhost') {
         return new Promise((resolve) => {
-            connection = new WEBSOCKET.w3cwebsocket(`ws://${host}:${port}`);
+            if (connection && connection.readyState === WebSocket.CONNECTING) {
+                eventEmitter.once('connect', () => resolve(connection));
+                return;
+            }
+            connection = new WebSocket(`ws://${host}:${port}`);
             connection.onopen = () => {
+                this.connected = true;
+                eventEmitter.emit('connect');
                 resolve(connection);
+            };
+            connection.onclose = connection.onerror = () => {
+                this.connected = false;
+                eventEmitter.emit('disconnect');
+                Object.values(rooms).forEach(({ id, players }) => players.forEach((player) => this.leaveGame(player.originalHandler, id)));
+                connection = undefined;
             };
             connection.onmessage = (e) => {
                 if (typeof e.data !== 'string') {
@@ -66,7 +79,7 @@ exports.RemoteClient = {
                         break;
                     }
                     case 'serverBroadcast': {
-                        serverLogger(message.payload);
+                        (0, local_server_1.printServerMessage)(message.payload);
                         break;
                     }
                 }
@@ -84,6 +97,11 @@ exports.RemoteClient = {
     joinGame(handler, options = {}) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
+            if ((connection === null || connection === void 0 ? void 0 : connection.readyState) !== websocket_1.w3cwebsocket.OPEN) {
+                return new Promise((resolve) => {
+                    eventEmitter.once('connect', () => this.joinGame(handler, options).then(resolve));
+                });
+            }
             let { roomId, filter, waitTimeout } = options;
             roomId = (_a = roomId !== null && roomId !== void 0 ? roomId : (yield this.getRoomIds(filter))[0]) !== null && _a !== void 0 ? _a : (0, uuid_1.v4)();
             const room = (rooms[roomId] = (_b = rooms[roomId]) !== null && _b !== void 0 ? _b : (0, common_1.hostGame)(local_server_1.LocalServer, roomId));
@@ -92,7 +110,7 @@ exports.RemoteClient = {
                 handler(playerRole, ...rest);
             };
             const uid = (0, uuid_1.v4)();
-            const player = { role: common_1.EPlayerRole.NONE, uid, handler: wrappedHandler, originalHandler: handler };
+            const player = { role: common_types_1.EPlayerRole.NONE, uid, handler: wrappedHandler, originalHandler: handler };
             room.players.push(player);
             (0, websocket_common_1.sendMessage)(connection, 'joinGame', { roomId, playerUid: uid, waitTimeout });
             return player;
@@ -126,5 +144,6 @@ exports.RemoteClient = {
             });
         });
     },
+    connected: false,
 };
 //# sourceMappingURL=remote-client.js.map

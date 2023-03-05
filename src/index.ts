@@ -1,6 +1,7 @@
 import { boot, computerOption, hostOption, humanOption, observerOption, portOption, roomIdOption, singleGameOption, waitTimeoutOption } from './boot'
 import { joinGame } from './client'
-import { intercept, LOG_SCOPE_LOCAL_SERVER } from './common'
+import { intercept } from './common'
+import { LOG_SCOPE_LOCAL_SERVER } from './common-types'
 import { computerPlayer } from './computer-player'
 import { humanPlayer } from './human-player'
 import { RemoteClient } from './remote-client'

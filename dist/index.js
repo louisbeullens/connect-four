@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const boot_1 = require("./boot");
 const client_1 = require("./client");
 const common_1 = require("./common");
+const common_types_1 = require("./common-types");
 const computer_player_1 = require("./computer-player");
 const human_player_1 = require("./human-player");
 const remote_client_1 = require("./remote-client");
@@ -20,5 +21,5 @@ const remote_client_1 = require("./remote-client");
     const player = human || observer ? human_player_1.humanPlayer : computer_player_1.computerPlayer;
     yield remote_client_1.RemoteClient.start(port, host);
     yield (0, client_1.joinGame)(remote_client_1.RemoteClient, (0, common_1.intercept)(remote_client_1.RemoteClient, player, { singleGame, silent: true }), { roomId, filter: observer ? 'full' : 'waiting', waitTimeout });
-}), boot_1.hostOption, boot_1.portOption, boot_1.roomIdOption, boot_1.waitTimeoutOption, boot_1.singleGameOption, boot_1.computerOption, boot_1.humanOption, boot_1.observerOption, common_1.LOG_SCOPE_LOCAL_SERVER, 'board');
+}), boot_1.hostOption, boot_1.portOption, boot_1.roomIdOption, boot_1.waitTimeoutOption, boot_1.singleGameOption, boot_1.computerOption, boot_1.humanOption, boot_1.observerOption, common_types_1.LOG_SCOPE_LOCAL_SERVER, 'board');
 //# sourceMappingURL=index.js.map

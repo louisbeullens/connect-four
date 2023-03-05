@@ -1,10 +1,9 @@
+import Logger from 'debug'
+export { Logger }
 export {
   checkBoardForTie,
   checkBoardForWinner,
-  COLUMN_MAX,
-  COLUMN_MIN,
-  ECoin,
-  EPlayerRole,
+  createNewGameState,
   getBoardBottomLeftDiagonal,
   getBoardColumn,
   getBoardRow,
@@ -13,27 +12,15 @@ export {
   getFreeBoardRowForColumn,
   getLineCombo,
   getPlayerName,
-  IGameState,
-  IInterceptOptions,
-  IJoinOptions,
   insertCoinInColumn,
   intercept,
-  IPlayer,
-  IRoom,
-  IServer,
   joinGame,
   leaveGame,
-  LOG_SCOPE_LOCAL_SERVER,
   printBoard,
   printCoin,
-  ROW_MAX,
-  ROW_MIN,
+  printLine,
   rowColumnToIndex,
-  TBoard,
-  TColumn,
-  TExecuteTurn,
-  THandler,
-  TRow,
 } from './common'
+export * from './common-types'
 export { LocalServer } from './local-server'
 export { RemoteClient } from './remote-client'

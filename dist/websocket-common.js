@@ -16,11 +16,13 @@ const stringifyMessage = (type, payload) => {
 };
 exports.stringifyMessage = stringifyMessage;
 const sendMessage = (connection, type, payload) => {
+    if (!connection) {
+        return;
+    }
     const message = (0, exports.stringifyMessage)(type, payload);
     setTimeout(() => {
-        socketLogger('send', message);
-        if (connection instanceof WEBSOCKET.w3cwebsocket) {
-            if (connection.readyState !== connection.OPEN) {
+        if (connection instanceof WebSocket) {
+            if (connection.readyState !== WebSocket.OPEN) {
                 return;
             }
         }
@@ -29,6 +31,7 @@ const sendMessage = (connection, type, payload) => {
                 return;
             }
         }
+        socketLogger('send', message);
         connection.send(message);
     }, 1);
 };

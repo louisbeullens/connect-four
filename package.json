@@ -25,7 +25,8 @@
     "commander": "^10.0.0",
     "debug": "^4.3.4",
     "uuid": "^9.0.0",
-    "websocket": "^1.0.34"
+    "websocket": "^1.0.34",
+    "websocket-polyfill": "^0.0.3"
   },
   "devDependencies": {
     "@types/debug": "^4.1.7",

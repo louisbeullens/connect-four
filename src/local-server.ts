@@ -6,30 +6,28 @@ import {
   checkBoardForWinner,
   clone,
   createNewGameState,
-  ECoin,
-  EPlayerRole,
   getFreeBoardRowForColumn,
-  getPlayerName,
   getRedAndOrYellowPlayer,
-  IGameState,
-  IJoinOptions,
   insertCoinInColumn,
   intercept,
-  IPlayer,
-  IRoom,
-  IServer,
   isPlayerRedOrYellow,
-  LOG_SCOPE_LOCAL_SERVER,
   printBoard,
-  TColumn,
-  THandler,
 } from './common'
+import { ECoin, EPlayerRole, IGameState, IJoinOptions, IPlayer, IRoom, IServer, LOG_SCOPE_LOCAL_SERVER, TColumn, THandler } from './common-types'
 import { IPlayerExtension } from './websocket-common'
 
 const boardLogger = debug('board')
 const serverLogger = debug(LOG_SCOPE_LOCAL_SERVER)
 
 const rooms: { [roomId: string]: IRoom<IPlayerExtension> } = {}
+
+export const printServerMessage = (message: string | any[]) => {
+  if (Array.isArray(message)) {
+    serverLogger(message[0], ...message.slice(1))
+  } else {
+    serverLogger(message)
+  }
+}
 
 const getEndGameWinLooseStatusFromRoles = (playerRole: EPlayerRole, winnerRole: EPlayerRole) => {
   return playerRole === EPlayerRole.OBSERVER ? 'end' : playerRole === winnerRole ? 'win' : 'loose'
@@ -48,9 +46,7 @@ export const LocalServer: IServer = {
       id: roomId,
       state: createNewGameState(),
       players: [],
-      broadcast: function (message) {
-        serverLogger(message)
-      },
+      broadcast: printServerMessage,
     }
     rooms[roomId] = room
     return room
@@ -77,28 +73,28 @@ export const LocalServer: IServer = {
           return
         }
         if (room.state.turn && room.state.turn !== player.role) {
-          room.broadcast(`${getPlayerName(player.role)} plays outside turn!`, player)
+          room.broadcast([`%P plays outside turn!`, player.role], player)
           return
         }
         const freeRowOrNegativeOne = getFreeBoardRowForColumn(room.state.board, column)
         if (freeRowOrNegativeOne === -1) {
           respond(player, { ...clone(room.state), status: 'invalidColumn' })
-          room.broadcast(`${getPlayerName(player.role)} plays an unavailable column!`, player)
+          room.broadcast([`%P plays an unavailable column!`, player.role], player)
           return
         }
         if (!room.state.turn) {
-          room.broadcast(`${getPlayerName(player.role)} started game!`)
+          room.broadcast([`%P started game!`, player.role])
         }
         insertCoinInColumn(room.state.board, column, player.role as unknown as ECoin)
-        room.state.turn = ((room.state.turn ?? player.role) % 2) + 1
         room.state.lastPlayerId = player.role
         room.state.lastPlayerAction = column
         printBoard(room.state.board, boardLogger)
         const win = checkBoardForWinner(room.state.board, player.role as unknown as ECoin)
         if (win) {
+          delete room.state.turn
           room.players.forEach((el) => respond(el, { ...clone(room.state), hasEnded: true, status: getEndGameWinLooseStatusFromRoles(el.role, player.role) }))
-          setTimeout(() => room.broadcast(`${getPlayerName(player.role)} won!`), 10)
           room.state = createNewGameState()
+          setTimeout(() => room.broadcast([`%P won!`, player.role]), 10)
           setTimeout(() => {
             if (!(roomId in rooms)) {
               return
@@ -110,6 +106,7 @@ export const LocalServer: IServer = {
         }
         const tie = checkBoardForTie(room.state.board)
         if (tie) {
+          delete room.state.turn
           room.players.forEach((el) => respond(el, { ...clone(room.state), hasEnded: true, status: getEndGameTieStatusFromRoles(el.role) }))
           setTimeout(() => room.broadcast(`Nobody won!`), 10)
           room.state = createNewGameState()
@@ -122,11 +119,12 @@ export const LocalServer: IServer = {
           }, 10000)
           return
         }
+        room.state.turn = 3 - player.role
         room.players.filter((el) => el.role !== player.role).forEach((el) => respond(el, clone(room.state)))
       }
       setTimeout(() => {
         if (firstResponse) {
-          room.broadcast(`${getPlayerName(player.role)} joined room ${roomId}.`)
+          room.broadcast([`%P joined room ${roomId}.`, player.role])
           if (waitTimeout > 0) {
             setTimeout(async () => {
               if (getRedAndOrYellowPlayer(room.players).length === 1) {
@@ -154,7 +152,7 @@ export const LocalServer: IServer = {
     const player = room.players[playerIndex]
     room.players.splice(playerIndex, 1)
     const playersLength = room.players.length
-    room.broadcast(`${getPlayerName(player.role)} left room ${roomId}.`, player)
+    room.broadcast([`%P left room ${roomId}.`, player.role], player)
     if (isPlayerRedOrYellow(player) && !player.isBot) {
       const bot = room.players.find((el) => el.isBot)
       if (bot) {

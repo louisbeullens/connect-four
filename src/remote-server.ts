@@ -2,8 +2,9 @@ import debug from 'debug'
 import * as HTTP from 'http'
 import * as OS from 'os'
 import * as WEBSOCKET from 'websocket'
-import { hostGame, IPlayer, IRoom, joinGame, leaveGame, LOG_SCOPE_LOCAL_SERVER, THandler } from './common'
-import { LocalServer } from './local-server'
+import { hostGame, joinGame, leaveGame } from './common'
+import { IPlayer, IRoom, LOG_SCOPE_LOCAL_SERVER, THandler } from './common-types'
+import { LocalServer, printServerMessage } from './local-server'
 import { IPlayerExtension, parseMessage, sendMessage } from './websocket-common'
 
 interface IWebsocketServer {
@@ -15,8 +16,6 @@ interface IWebsocketServer {
 let httpServer: HTTP.Server | undefined
 
 let wsServer: WEBSOCKET.server | undefined
-
-const serverLogger = debug(LOG_SCOPE_LOCAL_SERVER)
 
 const rooms: { [id: string]: IRoom<IPlayerExtension> } = {}
 
@@ -76,7 +75,7 @@ export const RemoteServer: IWebsocketServer = {
                   if (!room) {
                     room = rooms[roomId] = hostGame<IPlayerExtension>(LocalServer, roomId)
                     room.broadcast = function (this: IRoom<IPlayerExtension>, message, excludedPlayer) {
-                      serverLogger(message)
+                      printServerMessage(message)
                       this.players
                         .filter((el) => el.connection && el !== excludedPlayer)
                         .map((el) => el.connection)
@@ -143,7 +142,7 @@ export const RemoteServer: IWebsocketServer = {
   },
   stop() {
     const shutDownMessage = 'Shutting down.'
-    serverLogger(shutDownMessage)
+    printServerMessage(shutDownMessage)
     const logScopes = process.env.DEBUG.split(',')
     const serverScope = logScopes.find((el) => el === LOG_SCOPE_LOCAL_SERVER)
     if (serverScope) {

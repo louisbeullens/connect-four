@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { boot, portOption } from '../boot'
-import { LOG_SCOPE_LOCAL_SERVER } from '../common'
+import { LOG_SCOPE_LOCAL_SERVER } from '../common-types'
 import { RemoteServer } from '../remote-server'
 
 boot(

@@ -15,11 +15,11 @@ const HTTP = require("http");
 const OS = require("os");
 const WEBSOCKET = require("websocket");
 const common_1 = require("./common");
+const common_types_1 = require("./common-types");
 const local_server_1 = require("./local-server");
 const websocket_common_1 = require("./websocket-common");
 let httpServer;
 let wsServer;
-const serverLogger = (0, debug_1.default)(common_1.LOG_SCOPE_LOCAL_SERVER);
 const rooms = {};
 const getNetworkAddress = () => {
     for (const interfaceDetails of Object.values(OS.networkInterfaces())) {
@@ -74,7 +74,7 @@ exports.RemoteServer = {
                                     if (!room) {
                                         room = rooms[roomId] = (0, common_1.hostGame)(local_server_1.LocalServer, roomId);
                                         room.broadcast = function (message, excludedPlayer) {
-                                            serverLogger(message);
+                                            (0, local_server_1.printServerMessage)(message);
                                             this.players
                                                 .filter((el) => el.connection && el !== excludedPlayer)
                                                 .map((el) => el.connection)
@@ -141,9 +141,9 @@ exports.RemoteServer = {
     },
     stop() {
         const shutDownMessage = 'Shutting down.';
-        serverLogger(shutDownMessage);
+        (0, local_server_1.printServerMessage)(shutDownMessage);
         const logScopes = process.env.DEBUG.split(',');
-        const serverScope = logScopes.find((el) => el === common_1.LOG_SCOPE_LOCAL_SERVER);
+        const serverScope = logScopes.find((el) => el === common_types_1.LOG_SCOPE_LOCAL_SERVER);
         if (serverScope) {
             debug_1.default.enable(logScopes.filter((el) => el !== serverScope).join(''));
         }

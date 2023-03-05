@@ -9,19 +9,29 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.LocalServer = void 0;
+exports.LocalServer = exports.printServerMessage = void 0;
 const debug_1 = require("debug");
 const uuid_1 = require("uuid");
 const bot_player_1 = require("./bot-player");
 const common_1 = require("./common");
+const common_types_1 = require("./common-types");
 const boardLogger = (0, debug_1.default)('board');
-const serverLogger = (0, debug_1.default)(common_1.LOG_SCOPE_LOCAL_SERVER);
+const serverLogger = (0, debug_1.default)(common_types_1.LOG_SCOPE_LOCAL_SERVER);
 const rooms = {};
+const printServerMessage = (message) => {
+    if (Array.isArray(message)) {
+        serverLogger(message[0], ...message.slice(1));
+    }
+    else {
+        serverLogger(message);
+    }
+};
+exports.printServerMessage = printServerMessage;
 const getEndGameWinLooseStatusFromRoles = (playerRole, winnerRole) => {
-    return playerRole === common_1.EPlayerRole.OBSERVER ? 'end' : playerRole === winnerRole ? 'win' : 'loose';
+    return playerRole === common_types_1.EPlayerRole.OBSERVER ? 'end' : playerRole === winnerRole ? 'win' : 'loose';
 };
 const getEndGameTieStatusFromRoles = (playerRole) => {
-    return playerRole === common_1.EPlayerRole.OBSERVER ? 'end' : 'loose';
+    return playerRole === common_types_1.EPlayerRole.OBSERVER ? 'end' : 'loose';
 };
 exports.LocalServer = {
     hostGame(roomId) {
@@ -32,9 +42,7 @@ exports.LocalServer = {
             id: roomId,
             state: (0, common_1.createNewGameState)(),
             players: [],
-            broadcast: function (message) {
-                serverLogger(message);
-            },
+            broadcast: exports.printServerMessage,
         };
         rooms[roomId] = room;
         return room;
@@ -45,11 +53,11 @@ exports.LocalServer = {
             let { roomId, filter, waitTimeout } = options;
             roomId = (_a = roomId !== null && roomId !== void 0 ? roomId : (yield this.getRoomIds(filter))[0]) !== null && _a !== void 0 ? _a : (0, uuid_1.v4)();
             const room = (rooms[roomId] = (_b = rooms[roomId]) !== null && _b !== void 0 ? _b : this.hostGame(roomId));
-            const playerRole = room.players.find((el) => el.role === common_1.EPlayerRole.RED)
-                ? room.players.find((el) => el.role === common_1.EPlayerRole.YELLOW)
-                    ? common_1.EPlayerRole.OBSERVER
-                    : common_1.EPlayerRole.YELLOW
-                : common_1.EPlayerRole.RED;
+            const playerRole = room.players.find((el) => el.role === common_types_1.EPlayerRole.RED)
+                ? room.players.find((el) => el.role === common_types_1.EPlayerRole.YELLOW)
+                    ? common_types_1.EPlayerRole.OBSERVER
+                    : common_types_1.EPlayerRole.YELLOW
+                : common_types_1.EPlayerRole.RED;
             const player = {
                 role: playerRole,
                 handler,
@@ -57,33 +65,32 @@ exports.LocalServer = {
             room.players.push(player);
             const respond = (player, state, firstResponse = false) => {
                 const executeTurn = (column) => {
-                    var _a;
-                    if (player.role > common_1.EPlayerRole.YELLOW) {
+                    if (player.role > common_types_1.EPlayerRole.YELLOW) {
                         return;
                     }
                     if (room.state.turn && room.state.turn !== player.role) {
-                        room.broadcast(`${(0, common_1.getPlayerName)(player.role)} plays outside turn!`, player);
+                        room.broadcast([`%P plays outside turn!`, player.role], player);
                         return;
                     }
                     const freeRowOrNegativeOne = (0, common_1.getFreeBoardRowForColumn)(room.state.board, column);
                     if (freeRowOrNegativeOne === -1) {
                         respond(player, Object.assign(Object.assign({}, (0, common_1.clone)(room.state)), { status: 'invalidColumn' }));
-                        room.broadcast(`${(0, common_1.getPlayerName)(player.role)} plays an unavailable column!`, player);
+                        room.broadcast([`%P plays an unavailable column!`, player.role], player);
                         return;
                     }
                     if (!room.state.turn) {
-                        room.broadcast(`${(0, common_1.getPlayerName)(player.role)} started game!`);
+                        room.broadcast([`%P started game!`, player.role]);
                     }
                     (0, common_1.insertCoinInColumn)(room.state.board, column, player.role);
-                    room.state.turn = (((_a = room.state.turn) !== null && _a !== void 0 ? _a : player.role) % 2) + 1;
                     room.state.lastPlayerId = player.role;
                     room.state.lastPlayerAction = column;
                     (0, common_1.printBoard)(room.state.board, boardLogger);
                     const win = (0, common_1.checkBoardForWinner)(room.state.board, player.role);
                     if (win) {
+                        delete room.state.turn;
                         room.players.forEach((el) => respond(el, Object.assign(Object.assign({}, (0, common_1.clone)(room.state)), { hasEnded: true, status: getEndGameWinLooseStatusFromRoles(el.role, player.role) })));
-                        setTimeout(() => room.broadcast(`${(0, common_1.getPlayerName)(player.role)} won!`), 10);
                         room.state = (0, common_1.createNewGameState)();
+                        setTimeout(() => room.broadcast([`%P won!`, player.role]), 10);
                         setTimeout(() => {
                             if (!(roomId in rooms)) {
                                 return;
@@ -95,6 +102,7 @@ exports.LocalServer = {
                     }
                     const tie = (0, common_1.checkBoardForTie)(room.state.board);
                     if (tie) {
+                        delete room.state.turn;
                         room.players.forEach((el) => respond(el, Object.assign(Object.assign({}, (0, common_1.clone)(room.state)), { hasEnded: true, status: getEndGameTieStatusFromRoles(el.role) })));
                         setTimeout(() => room.broadcast(`Nobody won!`), 10);
                         room.state = (0, common_1.createNewGameState)();
@@ -107,11 +115,12 @@ exports.LocalServer = {
                         }, 10000);
                         return;
                     }
+                    room.state.turn = 3 - player.role;
                     room.players.filter((el) => el.role !== player.role).forEach((el) => respond(el, (0, common_1.clone)(room.state)));
                 };
                 setTimeout(() => {
                     if (firstResponse) {
-                        room.broadcast(`${(0, common_1.getPlayerName)(player.role)} joined room ${roomId}.`);
+                        room.broadcast([`%P joined room ${roomId}.`, player.role]);
                         if (waitTimeout > 0) {
                             setTimeout(() => __awaiter(this, void 0, void 0, function* () {
                                 if ((0, common_1.getRedAndOrYellowPlayer)(room.players).length === 1) {
@@ -141,7 +150,7 @@ exports.LocalServer = {
             const player = room.players[playerIndex];
             room.players.splice(playerIndex, 1);
             const playersLength = room.players.length;
-            room.broadcast(`${(0, common_1.getPlayerName)(player.role)} left room ${roomId}.`, player);
+            room.broadcast([`%P left room ${roomId}.`, player.role], player);
             if ((0, common_1.isPlayerRedOrYellow)(player) && !player.isBot) {
                 const bot = room.players.find((el) => el.isBot);
                 if (bot) {

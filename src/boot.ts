@@ -1,6 +1,7 @@
 import { Argument, Command, Option } from 'commander'
 import debug from 'debug'
-import { LOG_SCOPE_LOCAL_SERVER } from './common'
+import { getPlayerName } from './client'
+import { EPlayerRole, LOG_SCOPE_LOCAL_SERVER } from './common-types'
 
 debug.formatArgs = function (this: { namespace: string; useColors: boolean; color: number }, args: any[]) {
   const { namespace: name, useColors } = this
@@ -19,6 +20,8 @@ debug.formatArgs = function (this: { namespace: string; useColors: boolean; colo
     args[0] = new Date().toISOString() + ' ' + name + ': ' + args[0]
   }
 } as any
+
+debug.formatters.P = (playerRole: EPlayerRole) => getPlayerName(playerRole)
 
 export interface ICommandLineOptions {
   port?: number
